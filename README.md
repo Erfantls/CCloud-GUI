@@ -3,7 +3,7 @@
 A modern, free, and unlimited Iranian Persian streaming platform.
 
 <p align="center">
-  <img src="assets/logo.png" alt="CCloud Logo" width="50%">
+  <img src="assets/logo.png" alt="CCloud Logo" width="120">
 </p>
 
 ## Description
