@@ -370,7 +370,7 @@ class _SingleMovieScreenState extends State<SingleMovieScreen> {
                                 ),
                               ),
                               subtitle: Text(
-                                source.type.toUpperCase(),
+                                source.type.isEmpty ? 'فرمت پیشفرض' : source.type.toUpperCase(),
                                 style: GoogleFonts.vazirmatn(
                                   fontSize: 14,
                                   color: Theme.of(
@@ -471,7 +471,7 @@ class _SingleMovieScreenState extends State<SingleMovieScreen> {
                             ),
                           ),
                           Text(
-                            source.type.toUpperCase(),
+                            source.type.isEmpty ? 'فرمت پیشفرض' : source.type.toUpperCase(),
                             style: GoogleFonts.vazirmatn(
                               fontSize: 16,
                               color: Theme.of(

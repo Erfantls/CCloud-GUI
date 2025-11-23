@@ -16,7 +16,7 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        architecture: [x64, x86]
+        architecture: [x64]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -49,12 +49,6 @@ jobs:
           copy windows\installer\ccloud_gui-setup.exe release\
         shell: cmd
 
-      - name: Create Windows ZIP (Installer)
-        run: |
-          cd release
-          7z a -tzip CCloud-windows-${{ matrix.architecture }}-installer.zip ccloud_gui-setup.exe
-        shell: cmd
-
       - name: Create Windows Portable ZIP
         run: |
           mkdir -p release\portable
@@ -69,7 +63,6 @@ jobs:
           name: windows-build-${{ matrix.architecture }}
           path: |
             release/ccloud_gui-setup.exe
-            release/CCloud-windows-${{ matrix.architecture }}-installer.zip
             release/CCloud-windows-${{ matrix.architecture }}-portable.zip
 
   build-macos:
@@ -306,11 +299,6 @@ jobs:
         with:
           name: windows-build-x64
 
-      - name: Download Windows artifacts (x86)
-        uses: actions/download-artifact@v4
-        with:
-          name: windows-build-x86
-
       - name: Download macOS artifacts
         uses: actions/download-artifact@v4
         with:
@@ -344,10 +332,7 @@ jobs:
           prerelease: false
           files: |
             ccloud_gui-setup.exe
-            CCloud-windows-x64-installer.zip
             CCloud-windows-x64-portable.zip
-            CCloud-windows-x86-installer.zip
-            CCloud-windows-x86-portable.zip
             CCloud-macos-universal.dmg
             CCloud-macos-universal.zip
             CCloud-linux.tar.gz
@@ -362,10 +347,7 @@ jobs:
             | Platform | Architecture | Download |
             |----------|-------------|----------|
             | Windows  | x64 (Installer) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/ccloud_gui-setup.exe"><img src="https://img.shields.io/badge/Windows-Installer-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows Installer"></a> |
-            | Windows  | x64 (ZIP - Installer) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-windows-x64-installer.zip"><img src="https://img.shields.io/badge/Windows-x64--ZIP--Installer-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows x64 ZIP Installer"></a> |
             | Windows  | x64 (Portable ZIP) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-windows-x64-portable.zip"><img src="https://img.shields.io/badge/Windows-x64--Portable--ZIP-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows x64 Portable ZIP"></a> |
-            | Windows  | x86 (Installer) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-windows-x86-installer.zip"><img src="https://img.shields.io/badge/Windows-x86--Installer-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows x86 Installer"></a> |
-            | Windows  | x86 (Portable ZIP) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-windows-x86-portable.zip"><img src="https://img.shields.io/badge/Windows-x86--Portable--ZIP-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows x86 Portable ZIP"></a> |
             | macOS    | Universal (.dmg) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-macos-universal.dmg"><img src="https://img.shields.io/badge/macOS-Universal-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Universal DMG"></a> |
             | macOS    | Universal (.zip) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-macos-universal.zip"><img src="https://img.shields.io/badge/macOS-Universal-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Universal ZIP"></a> |
             | Linux    | x64 (tar.gz) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-linux.tar.gz"><img src="https://img.shields.io/badge/Linux-tar.gz-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux tar.gz"></a> |

@@ -593,14 +593,16 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
                           ),
                           child: ListTile(
                             title: Text(
-                              source.quality,
+                              source.quality.isEmpty
+                                  ? 'کیفیت پیشفرض'
+                                  : source.quality,
                               style: GoogleFonts.vazirmatn(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                             subtitle: Text(
-                              source.type.toUpperCase(),
+                              source.type.isEmpty ? 'فرمت پیشفرض' : source.type.toUpperCase(),
                               style: GoogleFonts.vazirmatn(
                                 fontSize: 14,
                                 color: Theme.of(
@@ -681,14 +683,16 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            source.quality,
+                            source.quality.isEmpty
+                                ? 'کیفیت پیشفرض'
+                                : source.quality,
                             style: GoogleFonts.vazirmatn(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           Text(
-                            source.type.toUpperCase(),
+                            source.type.isEmpty ? 'فرمت پیشفرض' : source.type.toUpperCase(),
                             style: GoogleFonts.vazirmatn(
                               fontSize: 16,
                               color: Theme.of(
