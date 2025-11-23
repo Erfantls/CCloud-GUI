@@ -374,7 +374,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                           ),
                                         ),
                                         child: Text(
-                                          'نسخه 1.0.0',
+                                          'نسخه 1.0.1',
                                           style: GoogleFonts.vazirmatn(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
@@ -569,7 +569,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  'نسخه 1.0.0',
+                  'نسخه 1.0.1',
                   style: GoogleFonts.vazirmatn(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -783,7 +783,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           final releaseUrl = latestRelease['html_url'] as String;
 
           // Current app version
-          const currentVersion = 'v1.0.0';
+          const currentVersion = 'v1.0.1';
 
           // Compare versions
           if (_isVersionNewer(latestVersion, currentVersion)) {
@@ -931,7 +931,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  'نسخه فعلی: v1.0.0',
+                  'نسخه فعلی: v1.0.1',
                   style: GoogleFonts.vazirmatn(
                     fontSize: 16,
                     color: Theme.of(context).textTheme.bodyMedium?.color,
