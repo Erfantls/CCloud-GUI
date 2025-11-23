@@ -26,10 +26,43 @@ class _SingleMovieScreenState extends State<SingleMovieScreen> {
     super.initState();
     _movie = widget.movie;
     _saveMovieToStorage();
+    _checkFavoriteStatus();
+  }
+
+  Future<void> _checkFavoriteStatus() async {
+    final isFav = await StorageUtils.isFavorite(_movie.id, _movie.type);
+    setState(() {
+      _isFavorite = isFav;
+    });
   }
 
   Future<void> _saveMovieToStorage() async {
     await StorageUtils.saveMovie(_movie);
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (_isFavorite) {
+      await StorageUtils.removeFromFavorites(_movie.id, _movie.type);
+    } else {
+      await StorageUtils.addToFavorites(_movie);
+    }
+    setState(() {
+      _isFavorite = !_isFavorite;
+    });
+
+    // Show snackbar
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isFavorite
+                ? 'به علاقه‌مندی‌ها اضافه شد'
+                : 'از علاقه‌مندی‌ها حذف شد',
+          ),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
   }
 
   @override
@@ -60,22 +93,7 @@ class _SingleMovieScreenState extends State<SingleMovieScreen> {
                       ? Theme.of(context).colorScheme.primary
                       : Theme.of(context).iconTheme.color,
                 ),
-                onPressed: () {
-                  setState(() {
-                    _isFavorite = !_isFavorite;
-                  });
-                  // Show snackbar
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        _isFavorite
-                            ? 'Added to favorites'
-                            : 'Removed from favorites',
-                      ),
-                      duration: const Duration(seconds: 1),
-                    ),
-                  );
-                },
+                onPressed: _toggleFavorite,
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(

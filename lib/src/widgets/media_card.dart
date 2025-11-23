@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/media_item.dart';
+import '../utils/storage_utils.dart';
 
 class MediaCard extends StatefulWidget {
   final MediaItem mediaItem;
   final VoidCallback onTap;
+  final bool showFavoriteButton;
 
-  const MediaCard({super.key, required this.mediaItem, required this.onTap});
+  const MediaCard({
+    super.key, 
+    required this.mediaItem, 
+    required this.onTap,
+    this.showFavoriteButton = true,
+  });
 
   @override
   State<MediaCard> createState() => _MediaCardState();
@@ -17,6 +24,7 @@ class _MediaCardState extends State<MediaCard>
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   bool _isHovered = false;
+  bool _isFavorite = false;
 
   @override
   void initState() {
@@ -28,6 +36,39 @@ class _MediaCardState extends State<MediaCard>
     _scaleAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
+    _checkFavoriteStatus();
+  }
+
+  Future<void> _checkFavoriteStatus() async {
+    final isFav = await StorageUtils.isFavorite(widget.mediaItem.id, widget.mediaItem.type);
+    if (mounted) {
+      setState(() {
+        _isFavorite = isFav;
+      });
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (_isFavorite) {
+      await StorageUtils.removeFromFavorites(widget.mediaItem.id, widget.mediaItem.type);
+    } else {
+      await StorageUtils.addToFavorites(widget.mediaItem);
+    }
+    setState(() {
+      _isFavorite = !_isFavorite;
+    });
+    
+    // Show snackbar
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isFavorite ? 'به علاقه‌مندی‌ها اضافه شد' : 'از علاقه‌مندی‌ها حذف شد',
+          ),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
   }
 
   @override
@@ -297,6 +338,42 @@ class _MediaCardState extends State<MediaCard>
                       ),
                     ),
                   ),
+                  // Favorite button
+                  if (widget.showFavoriteButton)
+                    Positioned(
+                      top: 15,
+                      left: 15,
+                      child: GestureDetector(
+                        onTap: _toggleFavorite,
+                        child: AnimatedOpacity(
+                          opacity: _isHovered ? 1.0 : 0.0,
+                          duration: const Duration(milliseconds: 200),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: _isFavorite 
+                                  ? Theme.of(context).colorScheme.primary 
+                                  : Colors.black.withOpacity(0.5),
+                              borderRadius: BorderRadius.circular(30),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _isFavorite 
+                                      ? Theme.of(context).colorScheme.primary.withOpacity(0.5)
+                                      : Colors.black.withOpacity(0.3),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 5),
+                                ),
+                              ],
+                            ),
+                            child: Icon(
+                              _isFavorite ? Icons.favorite : Icons.favorite_border,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

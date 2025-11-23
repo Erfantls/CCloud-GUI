@@ -32,6 +32,7 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
     }
 
     _saveSeriesToStorage();
+    _checkFavoriteStatus();
 
     // Load seasons data
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -58,8 +59,40 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
     });
   }
 
+  Future<void> _checkFavoriteStatus() async {
+    final isFav = await StorageUtils.isFavorite(_series.id, _series.type);
+    setState(() {
+      _isFavorite = isFav;
+    });
+  }
+
   Future<void> _saveSeriesToStorage() async {
     await StorageUtils.saveSeries(_series);
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (_isFavorite) {
+      await StorageUtils.removeFromFavorites(_series.id, _series.type);
+    } else {
+      await StorageUtils.addToFavorites(_series);
+    }
+    setState(() {
+      _isFavorite = !_isFavorite;
+    });
+
+    // Show snackbar
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _isFavorite
+                ? 'به علاقه‌مندی‌ها اضافه شد'
+                : 'از علاقه‌مندی‌ها حذف شد',
+          ),
+          duration: const Duration(seconds: 1),
+        ),
+      );
+    }
   }
 
   @override
@@ -92,22 +125,7 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
                           ? Theme.of(context).colorScheme.primary
                           : Theme.of(context).iconTheme.color,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _isFavorite = !_isFavorite;
-                      });
-                      // Show snackbar
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            _isFavorite
-                                ? 'Added to favorites'
-                                : 'Removed from favorites',
-                          ),
-                          duration: const Duration(seconds: 1),
-                        ),
-                      );
-                    },
+                    onPressed: _toggleFavorite,
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
@@ -332,36 +350,47 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
                       ),
                       const SizedBox(height: 24),
 
-                      // Seasons and Episodes with enhanced styling
-                      if (seasonsProvider.isLoading) ...[
+                      // Seasons section
+                      if (seasonsProvider.isLoading &&
+                          seasonsProvider.seasons.isEmpty) ...[
                         const Center(child: CircularProgressIndicator()),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 30),
                       ] else if (seasonsProvider.errorMessage.isNotEmpty) ...[
                         Center(
                           child: Column(
                             children: [
                               Text(
-                                'Error loading seasons: ${seasonsProvider.errorMessage}',
+                                'خطا در بارگذاری فصل‌ها',
                                 style: GoogleFonts.vazirmatn(
-                                  fontSize: 16,
+                                  fontSize: 18,
                                   color: Theme.of(context).colorScheme.error,
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 10),
+                              Text(
+                                seasonsProvider.errorMessage,
+                                style: GoogleFonts.vazirmatn(
+                                  fontSize: 14,
+                                  color: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium?.color,
+                                ),
+                              ),
+                              const SizedBox(height: 15),
                               ElevatedButton(
                                 onPressed: () {
-                                  if (_series.id > 0) {
-                                    seasonsProvider.loadSeasons(_series.id);
-                                  }
+                                  seasonsProvider.loadSeasons(_series.id);
                                 },
-                                child: Text('تلاش مجدد'),
+                                child: Text(
+                                  'تلاش مجدد',
+                                  style: GoogleFonts.vazirmatn(fontSize: 16),
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 30),
                       ] else if (seasonsProvider.seasons.isNotEmpty) ...[
-                        // Seasons selector with enhanced styling and horizontal scrolling
                         Text(
                           'فصل‌ها',
                           style: GoogleFonts.vazirmatn(
@@ -371,248 +400,98 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Help text for desktop users with specific keyboard instructions
-                        Text(
-                          'برای پیمایش افقی از ماوس یا کلیدهای جهت‌دار ← → صفحه کلید استفاده کنید',
-                          style: GoogleFonts.vazirmatn(
-                            fontSize: 14,
-                            color: isDarkMode
-                                ? Theme.of(context).textTheme.bodyMedium?.color
-                                      ?.withOpacity(0.7)
-                                : Colors.black54,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        // Enhanced seasons chips with better scrolling and styling for desktop
-                        SizedBox(
-                          height: 60,
-                          child: ScrollConfiguration(
-                            behavior: ScrollConfiguration.of(context).copyWith(
-                              scrollbars:
-                                  false, // Hide default scrollbar for cleaner look
-                            ),
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: seasonsProvider.seasons.length,
-                              itemBuilder: (context, index) {
-                                final season = seasonsProvider.seasons[index];
-                                final isSelected =
-                                    seasonsProvider.selectedSeasonIndex ==
-                                    index;
-
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                    left: index == 0 ? 0 : 8,
-                                    right:
-                                        index ==
-                                            seasonsProvider.seasons.length - 1
-                                        ? 0
-                                        : 8,
+                        // Seasons list
+                        Column(
+                          children: seasonsProvider.seasons.map((season) {
+                            return Container(
+                              margin: const EdgeInsets.only(bottom: 16),
+                              decoration: BoxDecoration(
+                                color: isDarkMode
+                                    ? Theme.of(
+                                        context,
+                                      ).colorScheme.surfaceVariant
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: isDarkMode
+                                        ? Colors.black.withOpacity(0.3)
+                                        : Colors.grey.withOpacity(0.2),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 4),
                                   ),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? Theme.of(
-                                              context,
-                                            ).colorScheme.primary
-                                          : isDarkMode
-                                          ? Theme.of(context)
-                                                .colorScheme
-                                                .surfaceVariant
-                                                .withOpacity(0.7)
-                                          : Colors.white,
-                                      borderRadius: BorderRadius.circular(30),
-                                      boxShadow: [
-                                        if (isSelected)
-                                          BoxShadow(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary
-                                                .withOpacity(0.4),
-                                            blurRadius: 12,
-                                            offset: const Offset(0, 4),
+                                ],
+                              ),
+                              child: ExpansionTile(
+                                title: Text(
+                                  season.title,
+                                  style: GoogleFonts.vazirmatn(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge?.color,
+                                  ),
+                                ),
+                                children: [
+                                  // Episodes list
+                                  ...season.episodes.map((episode) {
+                                    return ListTile(
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 20,
+                                            vertical: 8,
                                           ),
-                                        if (!isSelected)
-                                          BoxShadow(
-                                            color: isDarkMode
-                                                ? Colors.black.withOpacity(0.2)
-                                                : Colors.grey.withOpacity(0.1),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                      ],
-                                    ),
-                                    child: ChoiceChip(
-                                      label: Text(
-                                        season.title,
+                                      title: Text(
+                                        episode.title,
                                         style: GoogleFonts.vazirmatn(
                                           fontSize: 16,
-                                          fontWeight: FontWeight.w700,
-                                          color: isSelected
-                                              ? Colors.purple
-                                              : isDarkMode
-                                              ? Colors.white70
-                                              : Colors.black,
+                                          color: Theme.of(
+                                            context,
+                                          ).textTheme.bodyLarge?.color,
                                         ),
                                       ),
-                                      selected: isSelected,
-                                      onSelected: (selected) {
-                                        if (selected) {
-                                          seasonsProvider.selectSeason(index);
-                                        }
-                                      },
-                                      selectedColor: Colors.transparent,
-                                      backgroundColor: Colors.transparent,
-                                      labelPadding: const EdgeInsets.symmetric(
-                                        horizontal: 24,
-                                        vertical: 16,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Episodes list for selected season with enhanced styling
-                        if (seasonsProvider.selectedSeason != null) ...[
-                          Text(
-                            seasonsProvider.selectedSeason!.title,
-                            style: GoogleFonts.vazirmatn(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-
-                          // Grid layout with 2 items per row and enhanced styling
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final itemWidth = (constraints.maxWidth - 20) / 2;
-                              return GridView.builder(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                gridDelegate:
-                                    const SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: 2,
-                                      crossAxisSpacing: 15,
-                                      mainAxisSpacing: 15,
-                                      childAspectRatio: 2.5,
-                                    ),
-                                itemCount: seasonsProvider
-                                    .selectedSeason!
-                                    .episodes
-                                    .length,
-                                itemBuilder: (context, index) {
-                                  final episode = seasonsProvider
-                                      .selectedSeason!
-                                      .episodes[index];
-                                  return Container(
-                                    decoration: BoxDecoration(
-                                      color: isDarkMode
-                                          ? Theme.of(
-                                              context,
-                                            ).colorScheme.surfaceVariant
-                                          : Colors.white,
-                                      borderRadius: BorderRadius.circular(16),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: isDarkMode
-                                              ? Colors.black.withOpacity(0.3)
-                                              : Colors.grey.withOpacity(0.2),
-                                          blurRadius: 10,
-                                          offset: const Offset(0, 4),
+                                      subtitle: Text(
+                                        episode.duration ?? '',
+                                        style: GoogleFonts.vazirmatn(
+                                          fontSize: 14,
+                                          color: Theme.of(
+                                            context,
+                                          ).textTheme.bodyMedium?.color,
                                         ),
-                                      ],
-                                    ),
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      trailing: Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.play_arrow,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
                                       onTap: () {
                                         setState(() {
                                           _selectedEpisode = episode;
                                         });
-                                        _showSourceOptionsDialog(episode);
+                                        _showEpisodeOptionsDialog(episode);
                                       },
-                                      child: ListTile(
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              horizontal: 16,
-                                              vertical: 12,
-                                            ),
-                                        title: Text(
-                                          episode.title,
-                                          style: GoogleFonts.vazirmatn(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: isDarkMode
-                                                ? Theme.of(
-                                                    context,
-                                                  ).textTheme.bodyLarge?.color
-                                                : Colors.black,
-                                          ),
-                                          maxLines: 2,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        trailing: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            if (episode.sources.isNotEmpty) ...[
-                                              Container(
-                                                padding: const EdgeInsets.all(
-                                                  8,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: Theme.of(
-                                                    context,
-                                                  ).colorScheme.primary,
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                child: const Icon(
-                                                  Icons.play_arrow,
-                                                  color: Colors.white,
-                                                  size: 20,
-                                                ),
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ],
-                      ] else if (_series.id > 0) ...[
-                        // No seasons message - but only show if we have a valid series ID
-                        Center(
-                          child: Text(
-                            'هیچ فصلی یافت نشد',
-                            style: GoogleFonts.vazirmatn(
-                              fontSize: 16,
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyMedium?.color,
-                            ),
-                          ),
-                        ),
-                      ] else ...[
-                        // Error message for invalid series ID
-                        Center(
-                          child: Text(
-                            'اطلاعات سریال ناقص است',
-                            style: GoogleFonts.vazirmatn(
-                              fontSize: 16,
-                              color: Theme.of(context).colorScheme.error,
-                            ),
-                          ),
+                                    );
+                                  }).toList(),
+                                ],
+                              ),
+                            );
+                          }).toList(),
                         ),
                       ],
+
+                      const SizedBox(height: 30),
                     ],
                   ),
                 ),
@@ -624,7 +503,7 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
     );
   }
 
-  void _showSourceOptionsDialog(Episode episode) {
+  void _showEpisodeOptionsDialog(Episode episode) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -643,7 +522,7 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      episode.title,
+                      'گزینه‌های تماشا',
                       style: GoogleFonts.vazirmatn(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -657,98 +536,91 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                Text(
-                  'کیفیت‌های موجود',
-                  style: GoogleFonts.vazirmatn(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
+                // Episode title display
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                ),
-                const SizedBox(height: 20),
-
-                // Quality options with enhanced styling
-                Column(
-                  children: episode.sources.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final source = entry.value;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.surfaceVariant,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Theme.of(
-                                context,
-                              ).shadowColor.withOpacity(0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 16,
-                          ),
-                          title: Text(
-                            // Fallback to "کیفیت پیشفرض" if quality is null or empty
-                            source.quality.isEmpty
-                                ? 'کیفیت پیشفرض'
-                                : source.quality,
-                            style: GoogleFonts.vazirmatn(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyLarge?.color,
-                            ),
-                          ),
-                          subtitle: Text(
-                            source.type.toUpperCase(),
-                            style: GoogleFonts.vazirmatn(
-                              fontSize: 14,
-                              color: Theme.of(
-                                context,
-                              ).textTheme.bodyMedium?.color,
-                            ),
-                          ),
-                          trailing: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.primary,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: const Icon(
-                              Icons.play_arrow,
-                              color: Colors.white,
-                            ),
-                          ),
-                          onTap: () {
-                            Navigator.of(context).pop();
-                            _showDownloadOptionsDialog(source);
-                          },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        episode.title,
+                        style: GoogleFonts.vazirmatn(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                    );
-                  }).toList(),
-                ),
-
-                const SizedBox(height: 12),
-
-                // Cancel button
-                TextButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: TextButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 50),
-                  ),
-                  child: Text(
-                    'لغو',
-                    style: GoogleFonts.vazirmatn(fontSize: 16),
+                      if (episode.description.isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          episode.description,
+                          style: GoogleFonts.vazirmatn(
+                            fontSize: 16,
+                            color: Theme.of(
+                              context,
+                            ).textTheme.bodyMedium?.color,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
+                const SizedBox(height: 25),
+
+                // Quality options
+                if (episode.sources.isNotEmpty) ...[
+                  Text(
+                    'کیفیت‌های موجود',
+                    style: GoogleFonts.vazirmatn(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Column(
+                    children: episode.sources.map((source) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: Theme.of(context).colorScheme.outline,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListTile(
+                            title: Text(
+                              source.quality,
+                              style: GoogleFonts.vazirmatn(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            subtitle: Text(
+                              source.type.toUpperCase(),
+                              style: GoogleFonts.vazirmatn(
+                                fontSize: 14,
+                                color: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.color,
+                              ),
+                            ),
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onTap: () {
+                              Navigator.pop(context);
+                              _showSourceOptionsDialog(source);
+                            },
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+
+                const SizedBox(height: 10),
               ],
             ),
           ),
@@ -757,7 +629,7 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
     );
   }
 
-  void _showDownloadOptionsDialog(Source source) {
+  void _showSourceOptionsDialog(Source source) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -776,7 +648,7 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      source.quality.isEmpty ? 'کیفیت پیشفرض' : source.quality,
+                      'گزینه‌های تماشا',
                       style: GoogleFonts.vazirmatn(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
@@ -790,7 +662,7 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
                 ),
                 const SizedBox(height: 20),
 
-                // Source type display
+                // Source quality display
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -809,9 +681,7 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            source.quality.isEmpty
-                                ? 'کیفیت پیشفرض'
-                                : source.quality,
+                            source.quality,
                             style: GoogleFonts.vazirmatn(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -953,9 +823,7 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
                       child: OutlinedButton(
                         onPressed: () {
                           Navigator.pop(context);
-                          Share.share(
-                            'قسمت: ${_selectedEpisode?.title ?? 'نامشخص'}\nکیفیت ${source.quality.isEmpty ? 'پیشفرض' : source.quality}: ${source.url}',
-                          );
+                          Share.share(source.url);
                         },
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -974,6 +842,7 @@ class _SingleSeriesScreenState extends State<SingleSeriesScreen> {
                     ),
                   ],
                 ),
+                const SizedBox(height: 10),
               ],
             ),
           ),

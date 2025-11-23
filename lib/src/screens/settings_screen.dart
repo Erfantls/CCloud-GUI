@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:http/http.dart' as http;
 import 'dart:io' show Platform, exit;
+import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import '../utils/theme_manager.dart';
 
@@ -14,7 +16,13 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  int _selectedSection = 0; // 0 for theme, 1 for about, 2 for support
+  int _selectedSection =
+      0; // 0 for theme, 1 for about, 2 for update, 3 for support
+  bool _isCheckingUpdate = false;
+  String _updateStatus = '';
+  String _latestVersion = '';
+  String _latestReleaseUrl = ''; // Store the URL of the latest release
+  bool _updateAvailable = false;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
             const SizedBox(height: 30),
-            
+
             // Main content area
             Expanded(
               child: LayoutBuilder(
@@ -54,7 +62,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           decoration: BoxDecoration(
                             color: isDarkMode
                                 ? Theme.of(context).colorScheme.surfaceVariant
-                                : Theme.of(context).colorScheme.primaryContainer.withOpacity(0.3),
+                                : Theme.of(context).colorScheme.primaryContainer
+                                      .withOpacity(0.3),
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
@@ -74,27 +83,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   title: 'ظاهر',
                                   icon: Icons.color_lens,
                                   isSelected: _selectedSection == 0,
-                                  onTap: () => setState(() => _selectedSection = 0),
+                                  onTap: () =>
+                                      setState(() => _selectedSection = 0),
                                 ),
                                 _buildNavigationItem(
                                   context,
                                   title: 'درباره',
                                   icon: Icons.info,
                                   isSelected: _selectedSection == 1,
-                                  onTap: () => setState(() => _selectedSection = 1),
+                                  onTap: () =>
+                                      setState(() => _selectedSection = 1),
+                                ),
+                                _buildNavigationItem(
+                                  context,
+                                  title: 'بروزرسانی',
+                                  icon: Icons.system_update,
+                                  isSelected: _selectedSection == 2,
+                                  onTap: () {
+                                    setState(() => _selectedSection = 2);
+                                    // Check for updates when the update section is selected for the first time
+                                    if (_updateStatus.isEmpty) {
+                                      _checkForUpdates();
+                                    }
+                                  },
                                 ),
                                 _buildNavigationItem(
                                   context,
                                   title: 'پشتیبانی',
                                   icon: Icons.support,
-                                  isSelected: _selectedSection == 2,
-                                  onTap: () => setState(() => _selectedSection = 2),
+                                  isSelected: _selectedSection == 3,
+                                  onTap: () =>
+                                      setState(() => _selectedSection = 3),
                                 ),
                                 _buildNavigationItem(
                                   context,
                                   title: 'بستن برنامه',
                                   icon: Icons.exit_to_app,
-                                  isSelected: _selectedSection == 3,
+                                  isSelected: _selectedSection == 4,
                                   onTap: () => _confirmExit(context),
                                   isExitItem: true,
                                 ),
@@ -103,7 +128,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                         const SizedBox(width: 30),
-                        
+
                         // Right panel - Content
                         Expanded(
                           child: Container(
@@ -128,10 +153,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 child: _selectedSection == 0
                                     ? _buildThemeContent(context, themeManager)
                                     : _selectedSection == 1
-                                        ? _buildAboutContent(context)
-                                        : _selectedSection == 2
-                                            ? _buildSupportContent(context)
-                                            : Container(),
+                                    ? _buildAboutContent(context)
+                                    : _selectedSection == 2
+                                    ? _buildUpdateContent(context)
+                                    : _selectedSection == 3
+                                    ? _buildSupportContent(context)
+                                    : Container(),
                               ),
                             ),
                           ),
@@ -169,7 +196,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   children: [
                                     Icon(
                                       Icons.color_lens,
-                                      color: Theme.of(context).colorScheme.primary,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                       size: 28,
                                     ),
                                     const SizedBox(width: 12),
@@ -178,7 +207,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       style: GoogleFonts.vazirmatn(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).colorScheme.primary,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
                                       ),
                                     ),
                                   ],
@@ -188,30 +219,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   context,
                                   title: 'پیشفرض سیستم',
                                   icon: Icons.auto_mode,
-                                  isSelected: themeManager.currentTheme == AppTheme.system,
-                                  onTap: () => themeManager.setTheme(AppTheme.system),
+                                  isSelected:
+                                      themeManager.currentTheme ==
+                                      AppTheme.system,
+                                  onTap: () =>
+                                      themeManager.setTheme(AppTheme.system),
                                 ),
                                 const SizedBox(height: 15),
                                 _buildThemeOption(
                                   context,
                                   title: 'روشن',
                                   icon: Icons.light_mode,
-                                  isSelected: themeManager.currentTheme == AppTheme.light,
-                                  onTap: () => themeManager.setTheme(AppTheme.light),
+                                  isSelected:
+                                      themeManager.currentTheme ==
+                                      AppTheme.light,
+                                  onTap: () =>
+                                      themeManager.setTheme(AppTheme.light),
                                 ),
                                 const SizedBox(height: 15),
                                 _buildThemeOption(
                                   context,
                                   title: 'تاریک',
                                   icon: Icons.dark_mode,
-                                  isSelected: themeManager.currentTheme == AppTheme.dark,
-                                  onTap: () => themeManager.setTheme(AppTheme.dark),
+                                  isSelected:
+                                      themeManager.currentTheme ==
+                                      AppTheme.dark,
+                                  onTap: () =>
+                                      themeManager.setTheme(AppTheme.dark),
                                 ),
                               ],
                             ),
                           ),
                           const SizedBox(height: 30),
-                          
+
                           // About section
                           Container(
                             padding: const EdgeInsets.all(25),
@@ -238,7 +278,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   children: [
                                     Icon(
                                       Icons.info,
-                                      color: Theme.of(context).colorScheme.primary,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
                                       size: 28,
                                     ),
                                     const SizedBox(width: 12),
@@ -247,7 +289,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                       style: GoogleFonts.vazirmatn(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
-                                        color: Theme.of(context).colorScheme.primary,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.primary,
                                       ),
                                     ),
                                   ],
@@ -256,16 +300,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 Container(
                                   padding: const EdgeInsets.all(30),
                                   decoration: BoxDecoration(
-                                    color: Theme.of(context).colorScheme.primaryContainer,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primaryContainer,
                                     borderRadius: BorderRadius.circular(16),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     children: [
                                       Container(
                                         padding: const EdgeInsets.all(25),
                                         decoration: BoxDecoration(
-                                          color: Theme.of(context).colorScheme.primary,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
                                           shape: BoxShape.circle,
                                         ),
                                         child: Icon(
@@ -280,7 +329,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         style: GoogleFonts.vazirmatn(
                                           fontSize: 32,
                                           fontWeight: FontWeight.bold,
-                                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.onPrimaryContainer,
                                         ),
                                       ),
                                       const SizedBox(height: 15),
@@ -289,7 +340,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         style: GoogleFonts.vazirmatn(
                                           fontSize: 20,
                                           fontWeight: FontWeight.w600,
-                                          color: Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.9),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimaryContainer
+                                              .withOpacity(0.9),
                                         ),
                                       ),
                                       const SizedBox(height: 20),
@@ -298,7 +352,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                         style: GoogleFonts.vazirmatn(
                                           fontSize: 18,
                                           height: 1.6,
-                                          color: Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.8),
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .onPrimaryContainer
+                                              .withOpacity(0.8),
                                         ),
                                         textAlign: TextAlign.center,
                                       ),
@@ -309,11 +366,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                           vertical: 15,
                                         ),
                                         decoration: BoxDecoration(
-                                          color: Theme.of(context).colorScheme.primary,
-                                          borderRadius: BorderRadius.circular(30),
+                                          color: Theme.of(
+                                            context,
+                                          ).colorScheme.primary,
+                                          borderRadius: BorderRadius.circular(
+                                            30,
+                                          ),
                                         ),
                                         child: Text(
-                                          'نسخه 1.0.0',
+                                          'نسخه 1.0.1',
                                           style: GoogleFonts.vazirmatn(
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
@@ -364,7 +425,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
         const SizedBox(height: 30),
-        
+
         // Theme options with desktop-friendly layout
         Text(
           'تم برنامه',
@@ -374,7 +435,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ),
         const SizedBox(height: 25),
-        
+
         // Theme options in a grid layout for desktop
         LayoutBuilder(
           builder: (context, constraints) {
@@ -416,7 +477,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Widget _buildAboutContent(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -440,14 +501,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
         const SizedBox(height: 30),
-        
+
         // Modern desktop about content
         Container(
           padding: const EdgeInsets.all(30),
           decoration: BoxDecoration(
             color: isDarkMode
                 ? Theme.of(context).colorScheme.surface
-                : Theme.of(context).colorScheme.primaryContainer.withOpacity(0.2),
+                : Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer.withOpacity(0.2),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -470,7 +533,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.3),
                       blurRadius: 20,
                       offset: const Offset(0, 5),
                     ),
@@ -483,7 +548,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              
+
               // App name and version
               Text(
                 'CCloud',
@@ -504,7 +569,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  'نسخه 1.0.0',
+                  'نسخه 1.0.1',
                   style: GoogleFonts.vazirmatn(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -513,7 +578,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              
+
               // Developer info
               Container(
                 padding: const EdgeInsets.all(25),
@@ -564,7 +629,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              
+
               // Features section
               Container(
                 padding: const EdgeInsets.all(25),
@@ -626,7 +691,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              
+
               // Support section with buttons
               Container(
                 padding: const EdgeInsets.all(25),
@@ -697,9 +762,253 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Future<void> _checkForUpdates() async {
+    setState(() {
+      _isCheckingUpdate = true;
+      _updateStatus = 'در حال بررسی...';
+      _updateAvailable = false;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://api.github.com/repos/code3-dev/CCloud-GUI/releases'),
+        headers: {'Accept': 'application/vnd.github.v3+json'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> releases = jsonDecode(response.body);
+        if (releases.isNotEmpty) {
+          final latestRelease = releases[0];
+          final latestVersion = latestRelease['tag_name'] as String;
+          final releaseUrl = latestRelease['html_url'] as String;
+
+          // Current app version
+          const currentVersion = 'v1.0.1';
+
+          // Compare versions
+          if (_isVersionNewer(latestVersion, currentVersion)) {
+            setState(() {
+              _updateStatus = 'نسخه جدید در دسترس است!';
+              _latestVersion = latestVersion;
+              _updateAvailable = true;
+              _latestReleaseUrl = releaseUrl;
+            });
+          } else {
+            setState(() {
+              _updateStatus = 'نسخه شما به‌روز است';
+              _latestVersion = latestVersion;
+              _updateAvailable = false;
+              _latestReleaseUrl = releaseUrl; // Store the release URL
+            });
+          }
+        } else {
+          setState(() {
+            _updateStatus = 'اطلاعات نسخه یافت نشد';
+          });
+        }
+      } else {
+        setState(() {
+          _updateStatus = 'خطا در بررسی نسخه جدید';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _updateStatus = 'خطا در اتصال به سرور';
+      });
+    } finally {
+      setState(() {
+        _isCheckingUpdate = false;
+      });
+    }
+  }
+
+  bool _isVersionNewer(String latest, String current) {
+    // Remove 'v' prefix if present
+    final latestClean = latest.startsWith('v') ? latest.substring(1) : latest;
+    final currentClean = current.startsWith('v')
+        ? current.substring(1)
+        : current;
+
+    // Split version numbers
+    final latestParts = latestClean.split('.').map(int.tryParse).toList();
+    final currentParts = currentClean.split('.').map(int.tryParse).toList();
+
+    // Compare each part
+    for (int i = 0; i < latestParts.length && i < currentParts.length; i++) {
+      final latestNum = latestParts[i] ?? 0;
+      final currentNum = currentParts[i] ?? 0;
+
+      if (latestNum > currentNum) {
+        return true;
+      } else if (latestNum < currentNum) {
+        return false;
+      }
+    }
+
+    // If all parts are equal, check if latest has more parts
+    return latestParts.length > currentParts.length;
+  }
+
+  Widget _buildUpdateContent(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Section header
+        Row(
+          children: [
+            Icon(
+              Icons.system_update,
+              color: Theme.of(context).colorScheme.primary,
+              size: 32,
+            ),
+            const SizedBox(width: 16),
+            Text(
+              'بروزرسانی',
+              style: GoogleFonts.vazirmatn(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 30),
+
+        // Update content
+        Container(
+          padding: const EdgeInsets.all(30),
+          decoration: BoxDecoration(
+            color: isDarkMode
+                ? Theme.of(context).colorScheme.surfaceVariant
+                : Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: isDarkMode
+                    ? Colors.black.withOpacity(0.2)
+                    : Colors.grey.withOpacity(0.1),
+                blurRadius: 15,
+                offset: const Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Icon(
+                _updateAvailable
+                    ? Icons.new_releases
+                    : (_isCheckingUpdate
+                          ? Icons.hourglass_bottom
+                          : Icons.check_circle),
+                size: 64,
+                color: _updateAvailable
+                    ? Theme.of(context).colorScheme.primary
+                    : (_isCheckingUpdate
+                          ? Theme.of(context).colorScheme.secondary
+                          : Colors.green),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                _updateStatus,
+                style: GoogleFonts.vazirmatn(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).textTheme.bodyLarge?.color,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              if (_latestVersion.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Text(
+                  'آخرین نسخه: $_latestVersion',
+                  style: GoogleFonts.vazirmatn(
+                    fontSize: 16,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  'نسخه فعلی: v1.0.1',
+                  style: GoogleFonts.vazirmatn(
+                    fontSize: 16,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 30),
+              ElevatedButton.icon(
+                onPressed: _isCheckingUpdate ? null : _checkForUpdates,
+                icon: Icon(
+                  _isCheckingUpdate ? Icons.hourglass_empty : Icons.refresh,
+                ),
+                label: Text(
+                  _isCheckingUpdate ? 'در حال بررسی...' : 'بررسی نسخه جدید',
+                  style: GoogleFonts.vazirmatn(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 30,
+                    vertical: 15,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+              if (_updateAvailable) ...[
+                const SizedBox(height: 20),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    _launchURL(_latestReleaseUrl);
+                  },
+                  icon: const Icon(Icons.download),
+                  label: Text(
+                    'دانلود نسخه جدید',
+                    style: GoogleFonts.vazirmatn(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 30,
+                      vertical: 15,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _launchURL(String url) async {
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('نمی‌توان لینک را باز کرد')),
+        );
+      }
+    }
+  }
+
   Widget _buildSupportContent(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -723,14 +1032,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ],
         ),
         const SizedBox(height: 30),
-        
+
         // Support content
         Container(
           padding: const EdgeInsets.all(30),
           decoration: BoxDecoration(
             color: isDarkMode
                 ? Theme.of(context).colorScheme.surface
-                : Theme.of(context).colorScheme.primaryContainer.withOpacity(0.2),
+                : Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer.withOpacity(0.2),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -754,7 +1065,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              
+
               Wrap(
                 spacing: 20,
                 runSpacing: 20,
@@ -786,9 +1097,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 30),
-              
+
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -845,11 +1156,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          color: Theme.of(context).colorScheme.primary,
-          size: 24,
-        ),
+        Icon(icon, color: Theme.of(context).colorScheme.primary, size: 24),
         const SizedBox(width: 15),
         Expanded(
           child: Column(
@@ -896,8 +1203,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: isExitItem
               ? Colors.red.withOpacity(0.2)
               : isSelected
-                  ? Theme.of(context).colorScheme.primary
-                  : Colors.transparent,
+              ? Theme.of(context).colorScheme.primary
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: ListTile(
@@ -906,10 +1213,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             color: isExitItem
                 ? Colors.red
                 : isSelected
-                    ? Colors.white
-                    : isDarkMode
-                        ? Colors.white70
-                        : Colors.black54,
+                ? Colors.white
+                : isDarkMode
+                ? Colors.white70
+                : Colors.black54,
           ),
           title: Text(
             title,
@@ -919,10 +1226,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: isExitItem
                   ? Colors.red
                   : isSelected
-                      ? Colors.white
-                      : isDarkMode
-                          ? Colors.white70
-                          : Colors.black54,
+                  ? Colors.white
+                  : isDarkMode
+                  ? Colors.white70
+                  : Colors.black54,
             ),
           ),
         ),
@@ -946,15 +1253,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: isSelected
               ? Theme.of(context).colorScheme.primary.withOpacity(0.15)
               : isDarkMode
-                  ? Theme.of(context).colorScheme.surface
-                  : Colors.grey.withOpacity(0.05),
+              ? Theme.of(context).colorScheme.surface
+              : Colors.grey.withOpacity(0.05),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? Theme.of(context).colorScheme.primary
                 : isDarkMode
-                    ? Colors.white10
-                    : Colors.black12,
+                ? Colors.white10
+                : Colors.black12,
             width: 2,
           ),
           boxShadow: [
@@ -1018,8 +1325,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           color: isSelected
               ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
               : isDarkMode
-                  ? Theme.of(context).colorScheme.surface
-                  : Colors.grey.withOpacity(0.1),
+              ? Theme.of(context).colorScheme.surface
+              : Colors.grey.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
@@ -1084,20 +1391,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         }
       },
       style: ElevatedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 15,
-        ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         backgroundColor: Theme.of(context).colorScheme.primary,
       ),
-      icon: Icon(
-        icon,
-        color: Colors.white,
-        size: 20,
-      ),
+      icon: Icon(icon, color: Colors.white, size: 20),
       label: Text(
         label,
         style: GoogleFonts.vazirmatn(
@@ -1116,9 +1414,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         return AlertDialog(
           title: Text(
             'بستن برنامه',
-            style: GoogleFonts.vazirmatn(
-              fontWeight: FontWeight.bold,
-            ),
+            style: GoogleFonts.vazirmatn(fontWeight: FontWeight.bold),
           ),
           content: Text(
             'آیا از بستن برنامه اطمینان دارید؟',
@@ -1127,10 +1423,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'لغو',
-                style: GoogleFonts.vazirmatn(),
-              ),
+              child: Text('لغو', style: GoogleFonts.vazirmatn()),
             ),
             ElevatedButton(
               onPressed: () {
@@ -1138,14 +1431,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 // Close the application
                 _exitApp();
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               child: Text(
                 'بستن',
-                style: GoogleFonts.vazirmatn(
-                  color: Colors.white,
-                ),
+                style: GoogleFonts.vazirmatn(color: Colors.white),
               ),
             ),
           ],
@@ -1164,5 +1453,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // For web or mobile, we'll just show a message
     // In a real mobile app, you might want to minimize instead
   }
-
 }

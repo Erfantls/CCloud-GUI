@@ -178,14 +178,13 @@ class _MoviesScreenState extends State<MoviesScreen> {
                               .floor()
                               .toInt();
 
-                      // Ensure at least 1 column and max 5 columns
                       final count = crossAxisCount.clamp(1, 5);
 
                       return GridView.builder(
                         controller: _scrollController,
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: count, // Use dynamic count instead of fixed 5
-                          childAspectRatio: 0.68, // Adjusted for the new card dimensions
+                          crossAxisCount: count,
+                          childAspectRatio: 0.68,
                           crossAxisSpacing: 20,
                           mainAxisSpacing: 20,
                         ),

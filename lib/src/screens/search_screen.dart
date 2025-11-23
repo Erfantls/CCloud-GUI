@@ -238,18 +238,16 @@ class _SearchScreenState extends State<SearchScreen> {
         final cardWidth = 200.0;
         final spacing = 20.0;
         final crossAxisCount =
-            ((constraints.maxWidth + spacing) /
-                    (cardWidth + spacing))
+            ((constraints.maxWidth + spacing) / (cardWidth + spacing))
                 .floor()
                 .toInt();
 
-        // Ensure at least 1 column and max 5 columns
         final count = crossAxisCount.clamp(1, 5);
 
         return GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: count, // Use dynamic count instead of fixed 5
-            childAspectRatio: 0.68, // Match the media card dimensions
+            crossAxisCount: count,
+            childAspectRatio: 0.68,
             crossAxisSpacing: 20,
             mainAxisSpacing: 20,
           ),
