@@ -2,10 +2,10 @@
 #define MyAppVersion "1.0.0"
 #define MyAppPublisher "Hossein Pira"
 #define MyAppURL "https://github.com/code3-dev/CCloud-GUI"
-#define MyAppExeName "CCloud.exe"
+#define MyAppExeName "ccloud_gui.exe"
 
 [Setup]
-AppId={{8B4D4F4D-4F4D-4D4F-4D4F-4D4D4D4D4D4D}
+AppId={{8B4D4F4D-4F4D-4D4F-4D4F-4D4D4D4D4D4E}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
@@ -15,7 +15,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
 OutputDir=.
-OutputBaseFilename=CCloud-setup
+OutputBaseFilename=ccloud_gui-setup
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
