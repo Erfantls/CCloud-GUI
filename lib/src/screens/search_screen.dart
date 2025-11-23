@@ -254,7 +254,6 @@ class _SearchScreenState extends State<SearchScreen> {
           itemCount: posters.length,
           itemBuilder: (context, index) {
             final poster = posters[index];
-            // Convert Poster to MediaItem and use MediaCard
             final mediaItem = poster.toMediaItem();
             return MediaCard(
               mediaItem: mediaItem,
