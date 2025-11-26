@@ -1,9 +1,11 @@
 # CCloud GUI
 
-A modern, free, and unlimited Iranian Persian streaming platform.
-
 <p align="center">
   <img src="assets/logo.png" alt="CCloud Logo" width="150">
+</p>
+
+<p align="center">
+  A modern, free, and unlimited Iranian Persian streaming platform for downloading and streaming movies and series with Persian subtitles and dubbed content.
 </p>
 
 <p align="center">
@@ -24,13 +26,23 @@ A modern, free, and unlimited Iranian Persian streaming platform.
   </a>
 </p>
 
-## Description
+---
 
-CCloud is a cutting-edge streaming application designed specifically for Iranian Persian content. It provides unlimited access to a vast library of movies, TV series, and other media content without any restrictions or subscriptions.
+## 📖 Description
+
+CCloud is a cutting-edge streaming application designed specifically for Iranian Persian content. It provides **unlimited access** to a vast library of movies, TV series, and other media content without any restrictions or subscriptions.
+
+With CCloud, you can enjoy:
+- 🎬 **Unlimited Movies & Series**: Access to thousands of titles
+- 🌐 **Persian Content Focus**: Specifically curated for Iranian audiences
+- 📥 **Download & Stream**: Enjoy offline viewing or instant streaming
+- 🗨️ **Persian Subtitles & Dubbing**: Full localization support
 
 ## 🎨 Modern UI Features
 
 CCloud features a sleek, contemporary user interface designed for optimal user experience:
+
+### 🎯 Core Design Principles
 
 - **Material 3 Design**: Implements Google's latest design language with beautiful animations and transitions
 - **Responsive Layout**: Adapts seamlessly to different screen sizes with dynamic grid layouts
@@ -39,7 +51,7 @@ CCloud features a sleek, contemporary user interface designed for optimal user e
 - **Interactive Elements**: Hover effects, scaling animations, and smooth transitions
 - **Intuitive Navigation**: Sidebar-based navigation with clear visual hierarchy
 
-### UI Components
+### 🧩 Key UI Components
 
 - **Media Cards**: Beautifully designed cards with hover animations, gradient overlays, and metadata display
 - **Dynamic Grid**: Responsive grid layout that adjusts based on available screen space
@@ -47,50 +59,65 @@ CCloud features a sleek, contemporary user interface designed for optimal user e
 - **Search Functionality**: Powerful search with real-time results
 - **Favorites System**: Bookmark and easily access your favorite content
 
-## 🚀 Features
+## 🚀 Key Features
 
+### 💰 Accessibility
 - **Free Access**: Completely free to use with no hidden costs or subscriptions
 - **Unlimited Content**: Enjoy unlimited streaming of Iranian Persian movies and series
-- **Modern Interface**: Clean, intuitive, and user-friendly design
+
+### 🖥️ Platform Support
 - **Cross-Platform**: Available for Windows, macOS, and Linux
+- **Modern Interface**: Clean, intuitive, and user-friendly design
+
+### ⚡ Performance
 - **High Quality**: Stream content in high definition
 - **Fast Performance**: Optimized for smooth playback and quick loading times
 - **Infinite Scrolling**: Automatically loads more content as you scroll
+
+### 🛠️ Functionality
 - **IMDb Ratings**: View ratings for all content
 - **Multiple Sources**: Access content from various sources
 - **Share Functionality**: Easily share content with friends
 - **Persistent Storage**: Remembers your viewing history and preferences
 
-## 📦 Installation
+### ⚠️ Important Note for Windows Users
 
-### Windows
-- Download the installer from the [releases page](https://github.com/code3-dev/CCloud-GUI/releases)
-- Run the installer and follow the setup instructions
+If you encounter any errors when installing or running CCloud on Windows, please install the Microsoft Visual C++ Redistributable 2015-2022 and then try installing or running CCloud again.
 
-### macOS
-- Download the DMG file from the [releases page](https://github.com/code3-dev/CCloud-GUI/releases)
-- Open the DMG and drag the application to your Applications folder
+📥 **Download**: [Microsoft Visual C++ Redistributable](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist)
 
-### Linux
-- Download the AppImage, DEB, or RPM package from the [releases page](https://github.com/code3-dev/CCloud-GUI/releases)
-- For AppImage: Make executable and run
-- For DEB: Install using your package manager or double-click
-- For RPM: Install using your package manager
+## 📥 Download Links
+
+| Platform | Architecture | Download |
+|----------|-------------|----------|
+| Windows  | x64 (Installer) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/latest/download/ccloud_gui-setup.exe"><img src="https://img.shields.io/badge/Windows-Installer-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows Installer"></a> |
+| Windows  | x64 (Portable ZIP) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/latest/download/CCloud-windows-x64-portable.zip"><img src="https://img.shields.io/badge/Windows-x64--Portable--ZIP-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows x64 Portable ZIP"></a> |
+| macOS    | Universal (.dmg) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/latest/download/CCloud-macos-universal.dmg"><img src="https://img.shields.io/badge/macOS-Universal-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Universal DMG"></a> |
+| macOS    | Universal (.zip) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/latest/download/CCloud-macos-universal.zip"><img src="https://img.shields.io/badge/macOS-Universal-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Universal ZIP"></a> |
+| Linux    | x64 (tar.gz) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/latest/download/CCloud-linux.tar.gz"><img src="https://img.shields.io/badge/Linux-tar.gz-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux tar.gz"></a> |
+| Linux    | x64 (AppImage) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/latest/download/CCloud-linux.AppImage"><img src="https://img.shields.io/badge/Linux-AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux AppImage"></a> |
+| Linux    | x64 (.deb) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/latest/download/ccloud.deb"><img src="https://img.shields.io/badge/Linux-.deb-FCC624?style=for-the-badge&logo=debian&logoColor=white" alt="Linux .deb"></a> |
+| Linux    | x64 (.rpm) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/latest/download/ccloud.rpm"><img src="https://img.shields.io/badge/Linux-.rpm-FCC624?style=for-the-badge&logo=redhat&logoColor=white" alt="Linux .rpm"></a> |
+| Android  | Universal APK | <a href="https://github.com/code3-dev/CCloud/releases/latest/download/CCloud-universal.apk"><img src="https://img.shields.io/badge/Android-APK-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android Universal APK"></a> |
 
 ## 💻 Development
 
-This project is built with Flutter and uses the following technologies:
-- Flutter for cross-platform UI
-- Provider for state management
-- GoRouter for navigation
-- HTTP for API communication
-- Google Fonts for typography
-- Shared Preferences for local storage
-- VLC for media playback
+### 🛠️ Technologies
 
-### Architecture
+This project is built with Flutter and uses the following technologies:
+
+- **Flutter** for cross-platform UI
+- **Provider** for state management
+- **GoRouter** for navigation
+- **HTTP** for API communication
+- **Google Fonts** for typography
+- **Shared Preferences** for local storage
+- **VLC** for media playback
+
+### 🏗️ Architecture
 
 The application follows a clean architecture pattern with:
+
 - **Providers**: State management for various data sources
 - **Repositories**: Data abstraction layer
 - **Models**: Data structures for content representation
@@ -98,9 +125,10 @@ The application follows a clean architecture pattern with:
 - **Widgets**: Reusable UI components
 - **Utils**: Helper functions and utilities
 
-### State Management
+### 📊 State Management
 
 CCloud uses the Provider package for efficient state management:
+
 - Theme management (light/dark/system)
 - Movie and series data handling
 - Genre filtering
@@ -111,6 +139,8 @@ CCloud uses the Provider package for efficient state management:
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+### 🔧 How to Contribute
+
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
@@ -119,16 +149,35 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ## 👤 Author
 
-Hossein Pira - [code3-dev](https://github.com/code3-dev)
+**Hossein Pira**
 
-For any questions or support, please open an issue on this repository.
+📬 Contact Information:
+
+<p align="left">
+  <a href="mailto:h3dev.pira@gmail.com">
+    <img src="https://img.shields.io/badge/Email-D14836?style=for-the-badge&logo=gmail&logoColor=white" alt="Email">
+  </a>
+  <a href="https://t.me/h3dev">
+    <img src="https://img.shields.io/badge/Telegram-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram">
+  </a>
+  <a href="https://www.instagram.com/h3dev.pira">
+    <img src="https://img.shields.io/badge/Instagram-E4405F?style=for-the-badge&logo=instagram&logoColor=white" alt="Instagram">
+  </a>
+  <a href="https://github.com/code3-dev">
+    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
+  </a>
+</p>
+
+📧 For any questions or support, please open an issue on this repository.
 
 ## 🙏 Acknowledgments
 
-- Thanks to all contributors who have helped shape CCloud
-- Special thanks to the Flutter community for their amazing packages
-- Inspired by modern streaming platforms with a focus on Persian content
+We would like to thank:
+
+- 💪 Thanks to all contributors who have helped shape CCloud
+- 🦋 Special thanks to the Flutter community for their amazing packages
+- 🎯 Inspired by modern streaming platforms with a focus on Persian content

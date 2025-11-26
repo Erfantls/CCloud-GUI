@@ -342,6 +342,12 @@ jobs:
           body: |
             ## CCloud Release ${{ env.TAG_NAME }}
             
+            ### Important Note for Windows Users
+            
+            If you encounter any errors when installing or running CCloud on Windows, please install the Microsoft Visual C++ Redistributable 2015-2022 and then try installing or running CCloud again.
+            
+            You can download it from the official Microsoft website: [Microsoft Visual C++ Redistributable](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist)
+            
             ### Download
             
             | Platform | Architecture | Download |
@@ -354,3 +360,4 @@ jobs:
             | Linux    | x64 (AppImage) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-${{ env.VERSION }}-linux.AppImage"><img src="https://img.shields.io/badge/Linux-AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux AppImage"></a> |
             | Linux    | x64 (.deb) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/ccloud.deb"><img src="https://img.shields.io/badge/Linux-.deb-FCC624?style=for-the-badge&logo=debian&logoColor=white" alt="Linux .deb"></a> |
             | Linux    | x64 (.rpm) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/ccloud.rpm"><img src="https://img.shields.io/badge/Linux-.rpm-FCC624?style=for-the-badge&logo=redhat&logoColor=white" alt="Linux .rpm"></a> |
+            | Android  | Universal APK | <a href="https://github.com/code3-dev/CCloud/releases/latest/download/CCloud-universal.apk"><img src="https://img.shields.io/badge/Android-APK-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android Universal APK"></a> |
