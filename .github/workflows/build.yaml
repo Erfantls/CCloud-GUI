@@ -186,6 +186,13 @@ jobs:
           cp linux/assets/256x256.png ccloud-package/usr/share/icons/hicolor/256x256/apps/ccloud.png
           cp linux/assets/512x512.png ccloud-package/usr/share/icons/hicolor/512x512/apps/ccloud.png
           
+          # Create symbolic links for library dependencies
+          mkdir -p ccloud-package/usr/lib/ccloud
+          ln -sf /usr/lib/x86_64-linux-gnu/libgtk-3.so.0 ccloud-package/usr/lib/ccloud/libgtk-3.so.0
+          ln -sf /usr/lib/x86_64-linux-gnu/libgdk-3.so.0 ccloud-package/usr/lib/ccloud/libgdk-3.so.0
+          ln -sf /usr/lib/x86_64-linux-gnu/libgobject-2.0.so.0 ccloud-package/usr/lib/ccloud/libgobject-2.0.so.0
+          ln -sf /usr/lib/x86_64-linux-gnu/libglib-2.0.so.0 ccloud-package/usr/lib/ccloud/libglib-2.0.so.0
+          
           # Ensure release directory exists
           mkdir -p release
           
@@ -239,6 +246,11 @@ jobs:
           wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
           chmod +x linuxdeploy-x86_64.AppImage
           
+          # Download linuxdeploy-plugin-gtk plugin
+          echo "Downloading gtk plugin..."
+          wget https://github.com/linuxdeploy/linuxdeploy-plugin-gtk/releases/download/continuous/linuxdeploy-plugin-gtk.sh
+          chmod +x linuxdeploy-plugin-gtk.sh
+          
           # Create AppDir structure
           echo "Creating AppDir structure..."
           mkdir -p ccloud_gui.AppDir/usr/bin
@@ -247,6 +259,9 @@ jobs:
           # Copy desktop file to AppDir
           echo "Copying desktop file..."
           cp linux/runner/ccloud.desktop ccloud_gui.AppDir/ccloud_gui.desktop
+          
+          # Update desktop file for AppImage
+          sed -i 's|Exec=/usr/bin/ccloud_gui/AppRun|Exec=ccloud_gui|g' ccloud_gui.AppDir/ccloud_gui.desktop
           
           # Copy icon to AppDir root with correct name
           echo "Copying icon..."
@@ -259,34 +274,56 @@ jobs:
           echo "AppDir contents:"
           find ccloud_gui.AppDir -type f
           
-          # Create AppImage
+          # Create AppImage with GTK plugin to bundle required libraries
           echo "Creating AppImage..."
           OUTPUT=release/CCloud-$VERSION-linux.AppImage ./linuxdeploy-x86_64.AppImage \
             --appdir ccloud_gui.AppDir \
-            --output appimage || {
-            echo "AppImage creation failed, continuing with other packages"
-            echo "Contents of release directory:"
-            ls -la release/ || echo "Release directory not found or empty"
-          }
+            --plugin gtk \
+            --output appimage
         shell: bash
 
       - name: Package Linux build
         run: |
           mkdir -p release
+          # Bundle required libraries using ldd and copy them
+          mkdir -p build/linux/x64/release/bundle/lib
+          
+          # Copy system libraries that the executable depends on
+          EXECUTABLE_PATH="build/linux/x64/release/bundle/ccloud_gui"
+          LIB_DIR="build/linux/x64/release/bundle/lib"
+          
+          # Get list of dependencies
+          ldd "$EXECUTABLE_PATH" | grep "=> /" | awk '{print $3}' | while read lib; do
+            if [ -n "$lib" ] && [ -f "$lib" ]; then
+              cp "$lib" "$LIB_DIR/" 2>/dev/null || echo "Failed to copy $lib"
+            fi
+          done
+          
+          # Create a launcher script that sets LD_LIBRARY_PATH
+          cat > build/linux/x64/release/bundle/AppRun << 'EOF'
+          #!/bin/bash
+          DIR="$(cd "$(dirname "$0")" && pwd)"
+          export LD_LIBRARY_PATH="$DIR/lib:$LD_LIBRARY_PATH"
+          exec "$DIR/ccloud_gui" "$@"
+          EOF
+          chmod +x build/linux/x64/release/bundle/AppRun
+          
           # Create tar.gz archive of the Linux build
           tar -czf release/CCloud-linux.tar.gz -C build/linux/x64/release bundle/
-
+          
+          # Create ZIP archive of the Linux build
+          cd build/linux/x64/release
+          zip -r ../../../release/CCloud-linux.zip bundle/
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
         with:
           name: linux-build
           path: |
             release/CCloud-linux.tar.gz
+            release/CCloud-linux.zip
             release/CCloud-*-linux.AppImage
             release/ccloud.deb
             release/ccloud.rpm
-
-
   release:
     needs: [build-windows, build-macos, build-linux]
     runs-on: ubuntu-latest
@@ -336,10 +373,11 @@ jobs:
             CCloud-macos-universal.dmg
             CCloud-macos-universal.zip
             CCloud-linux.tar.gz
+            CCloud-linux.zip
             CCloud-*-linux.AppImage
             ccloud.deb
             ccloud.rpm
-          body: |
+          body: |            
             ## CCloud Release ${{ env.TAG_NAME }}
             
             ### Important Note for Windows Users
@@ -357,7 +395,10 @@ jobs:
             | macOS    | Universal (.dmg) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-macos-universal.dmg"><img src="https://img.shields.io/badge/macOS-Universal-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Universal DMG"></a> |
             | macOS    | Universal (.zip) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-macos-universal.zip"><img src="https://img.shields.io/badge/macOS-Universal-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Universal ZIP"></a> |
             | Linux    | x64 (tar.gz) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-linux.tar.gz"><img src="https://img.shields.io/badge/Linux-tar.gz-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux tar.gz"></a> |
+            | Linux    | x64 (ZIP) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-linux.zip"><img src="https://img.shields.io/badge/Linux-ZIP-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux ZIP"></a> |
             | Linux    | x64 (AppImage) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-${{ env.VERSION }}-linux.AppImage"><img src="https://img.shields.io/badge/Linux-AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux AppImage"></a> |
             | Linux    | x64 (.deb) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/ccloud.deb"><img src="https://img.shields.io/badge/Linux-.deb-FCC624?style=for-the-badge&logo=debian&logoColor=white" alt="Linux .deb"></a> |
             | Linux    | x64 (.rpm) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/ccloud.rpm"><img src="https://img.shields.io/badge/Linux-.rpm-FCC624?style=for-the-badge&logo=redhat&logoColor=white" alt="Linux .rpm"></a> |
             | Android  | Universal APK | <a href="https://github.com/code3-dev/CCloud/releases/latest/download/CCloud-universal.apk"><img src="https://img.shields.io/badge/Android-APK-3DDC84?style=for-the-badge&logo=android&logoColor=white" alt="Android Universal APK"></a> |
+            
+            For detailed instructions on installing and running CCloud on Linux, please refer to our [Linux Installation Guide](https://github.com/code3-dev/CCloud-GUI/blob/main/assets/LINUX_INSTALL.md).

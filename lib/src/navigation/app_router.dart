@@ -6,6 +6,7 @@ import '../screens/search_screen.dart';
 import '../screens/favorites_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/countries_screen.dart';
+import '../screens/livetv_screen.dart';
 import '../widgets/app_shell.dart';
 
 final GoRouter appRouter = GoRouter(
@@ -39,6 +40,12 @@ final GoRouter appRouter = GoRouter(
       path: '/countries',
       builder: (BuildContext context, GoRouterState state) {
         return AppShell(child: const CountriesScreen());
+      },
+    ),
+    GoRoute(
+      path: '/livetv',
+      builder: (BuildContext context, GoRouterState state) {
+        return AppShell(child: const LiveTvScreen());
       },
     ),
     GoRoute(

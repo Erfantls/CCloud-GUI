@@ -8,8 +8,13 @@ import 'src/providers/series_provider.dart';
 import 'src/providers/seasons_provider.dart';
 import 'src/providers/search_provider.dart';
 import 'src/providers/countries_provider.dart';
+import 'src/providers/tv_provider.dart';
+import 'package:media_kit/media_kit.dart';
 
 void main() {
+  // Initialize media_kit
+  MediaKit.ensureInitialized();
+  
   runApp(
     MultiProvider(
       providers: [
@@ -21,6 +26,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => SearchProvider()),
         ChangeNotifierProvider(create: (_) => CountriesProvider()),
         ChangeNotifierProvider(create: (_) => CountryMediaProvider()),
+        ChangeNotifierProvider(create: (_) => TvProvider()),
       ],
       child: const CCloud(),
     ),

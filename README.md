@@ -86,6 +86,10 @@ If you encounter any errors when installing or running CCloud on Windows, please
 
 📥 **Download**: [Microsoft Visual C++ Redistributable](https://docs.microsoft.com/en-US/cpp/windows/latest-supported-vc-redist)
 
+### 🐧 Linux Installation
+
+For detailed instructions on installing and running CCloud on Linux, please refer to our [Linux Installation Guide](assets/LINUX_INSTALL.md).
+
 ## 💻 Development
 
 ### 🛠️ Technologies
