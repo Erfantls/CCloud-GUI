@@ -14,9 +14,6 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
-    strategy:
-      matrix:
-        architecture: [x64]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -141,7 +138,7 @@ jobs:
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev desktop-file-utils libgdk-pixbuf2.0-dev
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev desktop-file-utils libgdk-pixbuf2.0-dev libmpv-dev libepoxy-dev
         shell: bash
 
       - name: Build Linux
