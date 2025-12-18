@@ -95,9 +95,9 @@ sudo yum install ccloud.rpm
 To build CCloud from source, you need to install the required development libraries:
 
 ```bash
-sudo apt-get install libmpv-dev libepoxy-dev
+sudo apt-get install libmpv-dev libepoxy-dev librsvg2-dev libgirepository1.0-dev
 ```
 
-These libraries are required by the media playback functionality in CCloud.
+These libraries are required by the media playback functionality and GTK plugin in CCloud.
 
 For any issues not covered in this guide, please open an issue on our GitHub repository.

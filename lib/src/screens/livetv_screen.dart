@@ -56,7 +56,7 @@ class _LiveTvScreenState extends State<LiveTvScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'کشورها',
+            'پخش زنده',
             style: GoogleFonts.vazirmatn(
               fontSize: 28,
               fontWeight: FontWeight.bold,
