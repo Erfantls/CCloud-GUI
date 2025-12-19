@@ -292,19 +292,12 @@ jobs:
           
           # Create tar.gz archive of the Linux build
           tar -czf release/CCloud-linux.tar.gz -C build/linux/x64/release bundle/
-          
-          # Create ZIP archive of the Linux build
-          # First ensure the release directory exists at the correct relative path
-          mkdir -p build/linux/x64/release/../../release
-          cd build/linux/x64/release
-          zip -r ../../release/CCloud-linux.zip bundle/
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
         with:
           name: linux-build
           path: |
             release/CCloud-linux.tar.gz
-            release/CCloud-linux.zip
             release/CCloud-*-linux.AppImage
             release/ccloud.deb
             release/ccloud.rpm
@@ -357,7 +350,6 @@ jobs:
             CCloud-macos-universal.dmg
             CCloud-macos-universal.zip
             CCloud-linux.tar.gz
-            CCloud-linux.zip
             CCloud-*-linux.AppImage
             ccloud.deb
             ccloud.rpm
@@ -379,7 +371,6 @@ jobs:
             | macOS    | Universal (.dmg) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-macos-universal.dmg"><img src="https://img.shields.io/badge/macOS-Universal-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Universal DMG"></a> |
             | macOS    | Universal (.zip) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-macos-universal.zip"><img src="https://img.shields.io/badge/macOS-Universal-000000?style=for-the-badge&logo=apple&logoColor=white" alt="macOS Universal ZIP"></a> |
             | Linux    | x64 (tar.gz) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-linux.tar.gz"><img src="https://img.shields.io/badge/Linux-tar.gz-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux tar.gz"></a> |
-            | Linux    | x64 (ZIP) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-linux.zip"><img src="https://img.shields.io/badge/Linux-ZIP-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux ZIP"></a> |
             | Linux    | x64 (AppImage) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/CCloud-${{ env.VERSION }}-linux.AppImage"><img src="https://img.shields.io/badge/Linux-AppImage-FCC624?style=for-the-badge&logo=linux&logoColor=black" alt="Linux AppImage"></a> |
             | Linux    | x64 (.deb) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/ccloud.deb"><img src="https://img.shields.io/badge/Linux-.deb-FCC624?style=for-the-badge&logo=debian&logoColor=white" alt="Linux .deb"></a> |
             | Linux    | x64 (.rpm) | <a href="https://github.com/code3-dev/CCloud-GUI/releases/download/${{ env.TAG_NAME }}/ccloud.rpm"><img src="https://img.shields.io/badge/Linux-.rpm-FCC624?style=for-the-badge&logo=redhat&logoColor=white" alt="Linux .rpm"></a> |
