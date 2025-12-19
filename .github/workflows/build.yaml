@@ -294,6 +294,8 @@ jobs:
           tar -czf release/CCloud-linux.tar.gz -C build/linux/x64/release bundle/
           
           # Create ZIP archive of the Linux build
+          # First ensure the release directory exists at the correct relative path
+          mkdir -p build/linux/x64/release/../../release
           cd build/linux/x64/release
           zip -r ../../release/CCloud-linux.zip bundle/
       - name: Upload Linux artifacts
