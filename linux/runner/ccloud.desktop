@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=CCloud
 Comment=Free movie and series streaming and download application for Iranian Persian content
-Exec=/usr/bin/ccloud_gui/AppRun
+Exec=ccloud_gui
 Icon=ccloud_gui
 Terminal=false
 Type=Application

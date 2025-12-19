@@ -258,11 +258,11 @@ jobs:
           cp linux/runner/ccloud.desktop ccloud_gui.AppDir/ccloud.desktop
           
           # Update desktop file for AppImage
-          sed -i 's|Exec=/usr/bin/ccloud_gui/AppRun|Exec=AppRun|g' ccloud_gui.AppDir/ccloud.desktop
+          sed -i 's|Exec=/usr/bin/ccloud_gui/AppRun|Exec=ccloud_gui|g' ccloud_gui.AppDir/ccloud.desktop
           
           # Copy icon to AppDir root with correct name
           echo "Copying icon..."
-          cp linux/assets/256x256.png ccloud_gui.AppDir/ccloud.png
+          cp linux/assets/256x256.png ccloud_gui.AppDir/ccloud_gui.png
           
           # Make sure the executable is properly linked
           chmod +x ccloud_gui.AppDir/usr/bin/ccloud_gui
