@@ -253,16 +253,16 @@ jobs:
           mkdir -p ccloud_gui.AppDir/usr/bin
           cp -r build/linux/x64/release/bundle/* ccloud_gui.AppDir/usr/bin/
           
-          # Copy desktop file to AppDir
+          # Copy desktop file to AppDir root with correct name
           echo "Copying desktop file..."
-          cp linux/runner/ccloud.desktop ccloud_gui.AppDir/ccloud_gui.desktop
+          cp linux/runner/ccloud.desktop ccloud_gui.AppDir/ccloud.desktop
           
           # Update desktop file for AppImage
-          sed -i 's|Exec=/usr/bin/ccloud_gui/AppRun|Exec=ccloud_gui|g' ccloud_gui.AppDir/ccloud_gui.desktop
+          sed -i 's|Exec=/usr/bin/ccloud_gui/AppRun|Exec=AppRun|g' ccloud_gui.AppDir/ccloud.desktop
           
           # Copy icon to AppDir root with correct name
           echo "Copying icon..."
-          cp linux/assets/256x256.png ccloud_gui.AppDir/ccloud_gui.png
+          cp linux/assets/256x256.png ccloud_gui.AppDir/ccloud.png
           
           # Make sure the executable is properly linked
           chmod +x ccloud_gui.AppDir/usr/bin/ccloud_gui
@@ -273,7 +273,7 @@ jobs:
           
           # Create AppImage with GTK plugin to bundle required libraries
           echo "Creating AppImage..."
-          OUTPUT=release/CCloud-$VERSION-linux.AppImage ./linuxdeploy-x86_64.AppImage \
+          LDAI_OUTPUT=release/CCloud-$VERSION-linux.AppImage ./linuxdeploy-x86_64.AppImage \
             --appdir ccloud_gui.AppDir \
             --plugin gtk \
             --output appimage
@@ -282,35 +282,20 @@ jobs:
       - name: Package Linux build
         run: |
           mkdir -p release
-          # Bundle required libraries using ldd and copy them
-          mkdir -p build/linux/x64/release/bundle/lib
           
-          # Copy system libraries that the executable depends on
-          EXECUTABLE_PATH="build/linux/x64/release/bundle/ccloud_gui"
-          LIB_DIR="build/linux/x64/release/bundle/lib"
-          
-          # Get list of dependencies
-          ldd "$EXECUTABLE_PATH" | grep "=> /" | awk '{print $3}' | while read lib; do
-            if [ -n "$lib" ] && [ -f "$lib" ]; then
-              cp "$lib" "$LIB_DIR/" 2>/dev/null || echo "Failed to copy $lib"
-            fi
-          done
-          
-          # Create a launcher script that sets LD_LIBRARY_PATH
-          cat > build/linux/x64/release/bundle/AppRun << 'EOF'
-          #!/bin/bash
-          DIR="$(cd "$(dirname "$0")" && pwd)"
-          export LD_LIBRARY_PATH="$DIR/lib:$LD_LIBRARY_PATH"
-          exec "$DIR/ccloud_gui" "$@"
-          EOF
-          chmod +x build/linux/x64/release/bundle/AppRun
+          # Check if bundle directory exists
+          if [ ! -d "build/linux/x64/release/bundle" ]; then
+            echo "Error: bundle directory not found"
+            ls -la build/linux/x64/release/
+            exit 1
+          fi
           
           # Create tar.gz archive of the Linux build
           tar -czf release/CCloud-linux.tar.gz -C build/linux/x64/release bundle/
           
           # Create ZIP archive of the Linux build
           cd build/linux/x64/release
-          zip -r ../../../release/CCloud-linux.zip bundle/
+          zip -r ../../release/CCloud-linux.zip bundle/
       - name: Upload Linux artifacts
         uses: actions/upload-artifact@v4
         with:
